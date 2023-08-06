@@ -60,6 +60,13 @@ impl RustOutOfTreeUnpinnedData {
     }
 }
 
+impl MyRustyNumberStruct {
+    fn set(&mut self, number: i32) {
+        self.number = number;
+        pr_info!("Updated Rusty Number @ {:p} to {}\n", self, self.number);
+    }
+}
+
 impl kernel::Module for RustOutOfTree {
     fn init(_module: &'static ThisModule) -> Result<Self> {
         pr_info!("Rust out-of-tree sample (init)\n");
@@ -69,8 +76,8 @@ impl kernel::Module for RustOutOfTree {
         numbers.try_push(108)?;
         numbers.try_push(200)?;
 
-        let mut rust_oft_pinned_data = Box::pin_init(RustOutOfTreePinnedData::new(2023))?;
-        let mut rust_oft_unpinned_data = RustOutOfTreeUnpinnedData::new(3202);
+        let rust_oft_pinned_data = Box::pin_init(RustOutOfTreePinnedData::new(2023))?;
+        let rust_oft_unpinned_data = RustOutOfTreeUnpinnedData::new(3202);
 
         // Perform a test on pinned variables.
         // (Ref: https://doc.rust-lang.org/nightly/core/pin/index.html#example-self-referential-struct)
@@ -85,6 +92,9 @@ impl kernel::Module for RustOutOfTree {
             pr_info!("PASS! rust_oft_pinned_data.rusty_number {} @{:p} is pinned!\n", rusty_number_value,
                      rusty_number_ptr.as_ptr());
         }
+        pr_info!("rust_oft_pinned_data.rusty_number @{:p} is initially: {}\n", rusty_number_moved_ptr,
+                 rust_oft_pinned_data_moved.rusty_number.number);
+        rust_oft_pinned_data_moved.rusty_number.set(20232023);
 
         // Perform a test on unpinned variables.
         let unpinned_rust_number_ptr = NonNull::from(&rust_oft_unpinned_data.rusty_number);
@@ -98,6 +108,10 @@ impl kernel::Module for RustOutOfTree {
             pr_info!("PASS! rust_oft_unpinned_data.rust_number {} @{:p} is moved to unpinned_rust_number_moved @{:p}!\n", unpinned_rust_number_value,
                      unpinned_rust_number_ptr.as_ptr(), unpinned_rust_number_moved_ptr.as_ptr());
         }
+        pr_info!("rust_oft_unpinned_data.rusty_number @{:p} is initially: {}\n", unpinned_rust_number_moved_ptr,
+                 rust_oft_unpinned_data_moved.rusty_number.number);
+        rust_oft_unpinned_data_moved.rusty_number.set(32023202);
+
 
         Ok(RustOutOfTree {
             numbers,
