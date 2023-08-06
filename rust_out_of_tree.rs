@@ -47,7 +47,7 @@ impl RustOutOfTreePinnedData {
     /// (Read pinned_init::InPlaceInit for further details.)
     fn new(number: i32) -> impl PinInit<Self> {
         pin_init!(Self {
-            rusty_number: MyRustyNumberStruct{ number },
+            rusty_number: MyRustyNumberStruct { number },
         })
     }
 }
@@ -55,7 +55,7 @@ impl RustOutOfTreePinnedData {
 impl RustOutOfTreeUnpinnedData {
     fn new(number: i32) -> Self {
         Self {
-            rusty_number: MyRustyNumberStruct{ number },
+            rusty_number: MyRustyNumberStruct { number },
         }
     }
 }
@@ -87,31 +87,43 @@ impl kernel::Module for RustOutOfTree {
         let rusty_number_moved_ptr = NonNull::from(&rust_oft_pinned_data_moved.rusty_number);
 
         if rusty_number_ptr != rusty_number_moved_ptr {
-            pr_err!("FAIL Impossible! rust_oft_pinned_data.rusty_number {} is not pinned!\n", rusty_number_value);
+            pr_err!(
+                "FAIL Impossible! rust_oft_pinned_data.rusty_number {} is not pinned!\n",
+                rusty_number_value
+            );
         } else {
-            pr_info!("PASS! rust_oft_pinned_data.rusty_number {} @{:p} is pinned!\n", rusty_number_value,
-                     rusty_number_ptr.as_ptr());
+            pr_info!(
+                "PASS! rust_oft_pinned_data.rusty_number {} @{:p} is pinned!\n",
+                rusty_number_value,
+                rusty_number_ptr.as_ptr()
+            );
         }
-        pr_info!("rust_oft_pinned_data.rusty_number @{:p} is initially: {}\n", rusty_number_moved_ptr,
-                 rust_oft_pinned_data_moved.rusty_number.number);
+        pr_info!(
+            "rust_oft_pinned_data.rusty_number @{:p} is initially: {}\n",
+            rusty_number_moved_ptr,
+            rust_oft_pinned_data_moved.rusty_number.number
+        );
         rust_oft_pinned_data_moved.rusty_number.set(20232023);
 
         // Perform a test on unpinned variables.
-        let unpinned_rust_number_ptr = NonNull::from(&rust_oft_unpinned_data.rusty_number);
-        let unpinned_rust_number_value = unsafe { (*unpinned_rust_number_ptr.as_ptr()).number };
+        let unpinned_rusty_number_ptr = NonNull::from(&rust_oft_unpinned_data.rusty_number);
+        let unpinned_rusty_number_value = unsafe { (*unpinned_rusty_number_ptr.as_ptr()).number };
         let mut rust_oft_unpinned_data_moved = rust_oft_unpinned_data;
-        let unpinned_rust_number_moved_ptr = NonNull::from(&rust_oft_unpinned_data_moved.rusty_number);
+        let unpinned_rusty_number_moved_ptr =
+            NonNull::from(&rust_oft_unpinned_data_moved.rusty_number);
 
-        if unpinned_rust_number_ptr == unpinned_rust_number_moved_ptr {
-            pr_err!("FAIL Impossible! rust_oft_unpinned_data.rust_number {} is not moved to unpinned_rust_number_moved!\n", unpinned_rust_number_value);
+        if unpinned_rusty_number_ptr == unpinned_rusty_number_moved_ptr {
+            pr_err!("FAIL Impossible! rust_oft_unpinned_data.rusty_number {} is not moved to unpinned_rusty_number_moved!\n", unpinned_rusty_number_value);
         } else {
-            pr_info!("PASS! rust_oft_unpinned_data.rust_number {} @{:p} is moved to unpinned_rust_number_moved @{:p}!\n", unpinned_rust_number_value,
-                     unpinned_rust_number_ptr.as_ptr(), unpinned_rust_number_moved_ptr.as_ptr());
+            pr_info!("PASS! rust_oft_unpinned_data.rusty_number {} @{:p} is moved to unpinned_rusty_number_moved @{:p}!\n", unpinned_rusty_number_value,
+                     unpinned_rusty_number_ptr.as_ptr(), unpinned_rusty_number_moved_ptr.as_ptr());
         }
-        pr_info!("rust_oft_unpinned_data.rusty_number @{:p} is initially: {}\n", unpinned_rust_number_moved_ptr,
-                 rust_oft_unpinned_data_moved.rusty_number.number);
+        pr_info!(
+            "rust_oft_unpinned_data.rusty_number @{:p} is initially: {}\n",
+            unpinned_rusty_number_moved_ptr,
+            rust_oft_unpinned_data_moved.rusty_number.number
+        );
         rust_oft_unpinned_data_moved.rusty_number.set(32023202);
-
 
         Ok(RustOutOfTree {
             numbers,
@@ -124,8 +136,14 @@ impl kernel::Module for RustOutOfTree {
 impl Drop for RustOutOfTree {
     fn drop(&mut self) {
         pr_info!("My numbers are {:?}\n", self.numbers);
-        pr_info!("My pinned number is {:?}\n", self.rust_oft_pinned_data.rusty_number.number);
-        pr_info!("My unpinned number is {:?}\n", self.rust_oft_unpinned_data.rusty_number.number);
+        pr_info!(
+            "My pinned number is {:?}\n",
+            self.rust_oft_pinned_data.rusty_number.number
+        );
+        pr_info!(
+            "My unpinned number is {:?}\n",
+            self.rust_oft_unpinned_data.rusty_number.number
+        );
         pr_info!("Rust out-of-tree sample (exit)\n");
     }
 }
