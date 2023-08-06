@@ -25,10 +25,22 @@ make[1]: Entering directory '.../linux-with-rust-support'
 make[1]: Leaving directory '.../linux-with-rust-support'
 ```
 
+(Note: you might see warnings about unnecessary `mut`, this is intentional for demonstrating "move" behaviours for structs declared with `#[pin_data]`.)
+
+Example dmesg when `insmod`:
 ```txt
-[    1.076945] rust_out_of_tree: Rust out-of-tree sample (init)
-[    1.084944] rust_out_of_tree: My numbers are [72, 108, 200]
-[    1.085944] rust_out_of_tree: Rust out-of-tree sample (exit)
+[   30.434011] rust_out_of_tree: loading out-of-tree module taints kernel.
+[   30.436638] rust_out_of_tree: Rust out-of-tree sample (init)
+[   30.437321] rust_out_of_tree: PASS! rust_oft_pinned_data.rusty_number 2023 @0xffff888001c57d30 is pinned!
+[   30.438293] rust_out_of_tree: PASS! rust_oft_unpinned_data.rust_number 3202 @0xffffc9000008f950 is moved to unpinned_rust_number_moved @0xffffc9000008f954!
+```
+
+Example dmesg when `rmmod`:
+```txt
+[   46.280321] rust_out_of_tree: My numbers are [72, 108, 200]
+[   46.282254] rust_out_of_tree: My pinned number is 2023
+[   46.282900] rust_out_of_tree: My unpinned number is 3202
+[   46.283433] rust_out_of_tree: Rust out-of-tree sample (exit)
 ```
 
 For details about the Rust support, see https://rust-for-linux.com.
